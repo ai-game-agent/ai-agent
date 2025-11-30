@@ -11,6 +11,7 @@ import pandas as pd
 import json
 import os
 from dotenv import load_dotenv
+from decimal import Decimal
 
 # 환경 변수 로드
 load_dotenv()
@@ -87,6 +88,16 @@ def load_data_from_json(file_path='data/games.json'):
         print(f" 데이터 로드 오류: {e}")
         raise
 
+def convert_floats_to_decimal(obj):
+    """재귀적으로 float을 Decimal로 변환"""
+    if isinstance(obj, float):
+        return Decimal(str(obj))   # float → Decimal
+    elif isinstance(obj, dict):
+        return {k: convert_floats_to_decimal(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_floats_to_decimal(v) for v in obj]
+    else:
+        return obj
 
 def upload_to_dynamodb(df, table, batch_size=25):
     """데이터를 DynamoDB에 업로드 (배치 처리)"""
@@ -123,6 +134,7 @@ def upload_to_dynamodb(df, table, batch_size=25):
                     item['tags'] = []
 
                 # DynamoDB에 쓰기
+                item = convert_floats_to_decimal(item)
                 batch.put_item(Item=item)
                 total_count += 1
 
