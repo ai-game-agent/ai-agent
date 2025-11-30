@@ -12,7 +12,6 @@ from tools.metadata_filter import filter_games, get_game_by_id
 import sys
 import os
 from dotenv import load_dotenv
-from strands.models.openai import OpenAIModel
 
 # 환경 변수 로드
 load_dotenv()
@@ -126,19 +125,18 @@ def safe_input(prompt: str) -> str:
 # 메인 실행 함수
 # ============================================================================
 
-# TODO: 추후 Bedrock 승인 받은 후 OpenAI와 비교하여 더 성능 좋은 모델 선택
-# def create_agent():
+def create_agent():
     """게임 추천 Agent 생성 및 반환"""
     # 환경 변수 확인
     kb_id = os.getenv("KNOWLEDGE_BASE_ID")
     use_kb = False
 
     if not kb_id:
-        print("  Knowledge Base ID가 설정되지 않았습니다")
+        print("⚠️  Knowledge Base ID가 설정되지 않았습니다")
         print("   DynamoDB만 사용하여 추천합니다 (Vector DB 없이)")
     else:
         use_kb = True
-        print(f" Knowledge Base 연결: {kb_id}")
+        print(f"✅ Knowledge Base 연결: {kb_id}")
 
     # Agent 초기화
     print("\n게임 추천 Agent 초기화 중...")
@@ -161,42 +159,7 @@ def safe_input(prompt: str) -> str:
         system_prompt=GAME_AGENT_PROMPT,
         tools=tools
     )
-    print(" 초기화 완료!\n")
-    return agent
-
-
-def create_agent():
-    """게임 추천 Agent 생성 및 반환"""
-
-    print("\n게임 추천 Agent 초기화 중...")
-
-    # OpenAI API 설정
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY가 설정되지 않았습니다.")
-
-    model_id = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-    model = OpenAIModel(model_id=model_id, api_key=api_key)
-    print(f"   모델: OpenAI ({model_id})")
-
-    # Knowledge Base 여부
-    kb_id = os.getenv("KNOWLEDGE_BASE_ID")
-    use_kb = bool(kb_id)
-
-    if use_kb:
-        tools = [retrieve, filter_games, get_game_by_id, http_request]
-        print("   모드: Hybrid (Vector DB + DynamoDB)")
-    else:
-        tools = [filter_games, get_game_by_id, http_request]
-        print("   모드: DynamoDB 전용")
-
-    agent = Agent(
-        model=model,
-        system_prompt=GAME_AGENT_PROMPT,
-        tools=tools
-    )
-
-    print(" 초기화 완료!\n")
+    print("✅ 초기화 완료!\n")
     return agent
 
 
