@@ -1,0 +1,2 @@
+strands>=0.1.0
+strands-tools>=0.1.0
